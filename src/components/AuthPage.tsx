@@ -12,6 +12,9 @@ interface AuthPageProps {
   onLogin: (user: User) => void
 }
 
+const ADMIN_EMAIL = 'syziel@gmail.com'
+const ADMIN_USER_ID = 'user-1763483195543'
+
 export function AuthPage({ onLogin }: AuthPageProps) {
   const [selectedRole, setSelectedRole] = useState<UserRole>('student')
   const [isLogin, setIsLogin] = useState(true)
@@ -32,11 +35,18 @@ export function AuthPage({ onLogin }: AuthPageProps) {
       return
     }
 
+    const isAdminEmail = email.toLowerCase() === ADMIN_EMAIL.toLowerCase()
+    
+    if (selectedRole === 'admin' && !isAdminEmail) {
+      toast.error('Only authorized administrators can access the admin role')
+      return
+    }
+
     const user: User = {
-      id: `user-${Date.now()}`,
+      id: isAdminEmail ? ADMIN_USER_ID : `user-${Date.now()}`,
       email,
-      role: selectedRole,
-      name: name || email.split('@')[0],
+      role: isAdminEmail ? 'admin' : 'student',
+      name: isAdminEmail ? 'syziel' : (name || email.split('@')[0]),
     }
 
     toast.success(`Welcome ${isLogin ? 'back' : ''}!`)
