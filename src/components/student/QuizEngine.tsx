@@ -28,8 +28,19 @@ export function QuizEngine({ topicId, topic, user, onComplete }: QuizEngineProps
   const [showFeedback, setShowFeedback] = useState(false)
   const [isCorrect, setIsCorrect] = useState(false)
   const [startTime] = useState(Date.now())
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false)
 
   useEffect(() => {
+    // Mark as loaded when templates change from initial state
+    if (templates && templates.length >= 0 && !hasLoadedOnce) {
+      setHasLoadedOnce(true)
+    }
+
+    // Only check for empty after initial load to avoid race condition
+    if (!hasLoadedOnce) {
+      return
+    }
+
     const topicTemplates = (templates || []).filter((t) => t.topicId === topicId)
     
     if (topicTemplates.length === 0) {
@@ -44,7 +55,7 @@ export function QuizEngine({ topicId, topic, user, onComplete }: QuizEngineProps
     
     setQuestions(generated)
     setUserAnswers(new Array(generated.length).fill(null))
-  }, [topicId, templates])
+  }, [topicId, templates, hasLoadedOnce, onComplete])
 
   const currentQuestion = questions[currentIndex]
 
@@ -128,7 +139,7 @@ export function QuizEngine({ topicId, topic, user, onComplete }: QuizEngineProps
     onComplete()
   }
 
-  if (questions.length === 0) {
+  if (!hasLoadedOnce || questions.length === 0) {
     return (
       <GlassCard>
         <GlassCard.Content className="text-center py-12">
